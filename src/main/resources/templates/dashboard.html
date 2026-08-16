@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>
+        Dashboard | Consultant Management System
+    </title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link rel="stylesheet"
+          th:href="@{/css/style.css}">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            min-width: 0;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            margin-top: 28px;
+        }
+
+        .charts-grid .chart-card {
+            min-width: 0;
+            margin-top: 0;
+        }
+
+        .status-chart-container,
+        .technology-chart-container {
+            position: relative;
+            height: 320px;
+            margin-top: 25px;
+        }
+
+        .quick-actions-card {
+            margin-top: 28px;
+            padding: 28px;
+            background: #ffffff;
+            border: 1px solid #d7e4f5;
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(44, 76, 120, 0.08);
+        }
+
+        .quick-actions-heading h3 {
+            margin: 0;
+            color: #223a63;
+            font-size: 20px;
+        }
+
+        .quick-actions-heading p {
+            margin: 6px 0 0;
+            color: #8090aa;
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 22px;
+        }
+
+        .quick-action {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 85px;
+            padding: 18px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 700;
+            transition: transform 0.2s ease,
+                        box-shadow 0.2s ease;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 22px rgba(44, 76, 120, 0.14);
+        }
+
+        .action-add {
+            color: #3e58c7;
+            background: #eef1ff;
+            border: 1px solid #d9dfff;
+        }
+
+        .action-view {
+            color: #176291;
+            background: #eaf7ff;
+            border: 1px solid #caeafa;
+        }
+
+        .action-reports {
+            color: #6740b7;
+            background: #f3edff;
+            border: 1px solid #e1d5fa;
+        }
+
+        .action-excel {
+            color: #287647;
+            background: #ebf8ef;
+            border: 1px solid #ccebd6;
+        }
+
+        .action-pdf {
+            color: #b33b3b;
+            background: #fff0f0;
+            border: 1px solid #f3d1d1;
+        }
+
+        @media (max-width: 1300px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .quick-actions-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .stats-grid,
+            .quick-actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+
+        <div class="brand">
+
+            <div class="brand-logo">
+                CM
+            </div>
+
+            <div>
+                <h1>Consultant</h1>
+                <p>Management System</p>
+            </div>
+
+        </div>
+
+        <p class="menu-label">
+            WORKSPACE
+        </p>
+
+        <nav class="sidebar-nav">
+
+            <a class="nav-link active"
+               th:href="@{/dashboard}">
+                <span>▦</span>
+                Dashboard
+            </a>
+
+            <a class="nav-link"
+               th:href="@{/consultants}">
+                <span>♙</span>
+                Consultants
+            </a>
+
+            <a class="nav-link"
+               th:href="@{/consultants/add}">
+                <span>＋</span>
+                Add Consultant
+            </a>
+
+            <a class="nav-link"
+               th:href="@{/reports}">
+                <span>▥</span>
+                Reports
+            </a>
+
+        </nav>
+
+        <div class="admin-card">
+            <strong>Administrator</strong>
+            <small>admin</small>
+        </div>
+
+        <form th:action="@{/logout}"
+              method="post"
+              class="logout-form">
+
+            <button type="submit"
+                    class="logout-button">
+                Sign Out
+            </button>
+
+        </form>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- Dashboard Heading -->
+        <section class="hero-section">
+
+            <div>
+
+                <p class="eyebrow">
+                    CONSULTANT WORKSPACE
+                </p>
+
+                <h2>Dashboard</h2>
+
+                <p>Welcome back, Administrator</p>
+
+            </div>
+
+            <a class="primary-button"
+               th:href="@{/consultants/add}">
+                + Add Consultant
+            </a>
+
+        </section>
+
+        <!-- Dashboard Cards -->
+        <section class="stats-grid">
+
+            <!-- Total Consultants -->
+            <article class="stat-card">
+
+                <div class="stat-title">
+                    <span>Total Consultants</span>
+                    <span class="stat-icon">♙</span>
+                </div>
+
+                <strong th:text="${totalConsultants}">
+                    0
+                </strong>
+
+                <p>All consultant records</p>
+
+            </article>
+
+            <!-- Active Consultants -->
+            <article class="stat-card">
+
+                <div class="stat-title">
+                    <span>Active Consultants</span>
+                    <span class="stat-icon">✓</span>
+                </div>
+
+                <strong th:text="${activeConsultants}">
+                    0
+                </strong>
+
+                <p>Currently active</p>
+
+            </article>
+
+            <!-- On Project -->
+            <article class="stat-card">
+
+                <div class="stat-title">
+                    <span>On Project</span>
+                    <span class="stat-icon">▣</span>
+                </div>
+
+                <strong th:text="${onProjectConsultants}">
+                    0
+                </strong>
+
+                <p>Currently assigned</p>
+
+            </article>
+
+            <!-- Available -->
+            <article class="stat-card">
+
+                <div class="stat-title">
+                    <span>Available</span>
+                    <span class="stat-icon">●</span>
+                </div>
+
+                <strong th:text="${availableConsultants}">
+                    0
+                </strong>
+
+                <p>Ready for assignment</p>
+
+            </article>
+
+            <!-- New This Month -->
+            <article class="stat-card">
+
+                <div class="stat-title">
+                    <span>New This Month</span>
+                    <span class="stat-icon">↗</span>
+                </div>
+
+                <strong th:text="${newConsultantsThisMonth}">
+                    0
+                </strong>
+
+                <p>Joined during this month</p>
+
+            </article>
+
+        </section>
+
+        <!-- Dashboard Charts -->
+        <div class="charts-grid">
+
+            <!-- Status Donut Chart -->
+            <section class="chart-card">
+
+                <div class="chart-heading">
+
+                    <div>
+                        <h3>Consultant Status Distribution</h3>
+                        <p>Current consultants grouped by status</p>
+                    </div>
+
+                </div>
+
+                <div class="status-chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+
+            </section>
+
+            <!-- Technology Bar Chart -->
+            <section class="chart-card">
+
+                <div class="chart-heading">
+
+                    <div>
+                        <h3>Consultants by Technology</h3>
+                        <p>Consultants grouped by primary technology</p>
+                    </div>
+
+                </div>
+
+                <div class="technology-chart-container">
+                    <canvas id="technologyChart"></canvas>
+                </div>
+
+            </section>
+
+        </div>
+
+        <!-- Quick Actions -->
+        <section class="quick-actions-card">
+
+            <div class="quick-actions-heading">
+
+                <h3>Quick Actions</h3>
+
+                <p>
+                    Manage consultants, review reports and download data.
+                </p>
+
+            </div>
+
+            <div class="quick-actions-grid">
+
+                <a class="quick-action action-add"
+                   th:href="@{/consultants/add}">
+                    <span>＋</span>
+                    Add Consultant
+                </a>
+
+                <a class="quick-action action-view"
+                   th:href="@{/consultants}">
+                    <span>♙</span>
+                    View Consultants
+                </a>
+
+                <a class="quick-action action-reports"
+                   th:href="@{/reports}">
+                    <span>▥</span>
+                    View Reports
+                </a>
+
+                <a class="quick-action action-excel"
+                   th:href="@{/consultants/export/excel}">
+                    <span>▦</span>
+                    Export to Excel
+                </a>
+
+                <a class="quick-action action-pdf"
+                   th:href="@{/consultants/export/pdf}">
+                    <span>▤</span>
+                    Export to PDF
+                </a>
+
+            </div>
+
+        </section>
+
+        <!-- Recent Consultants -->
+        <section class="table-card">
+
+            <div class="table-heading">
+
+                <div>
+                    <h3>Recent Consultants</h3>
+                    <p>Latest five consultant records</p>
+                </div>
+
+                <a th:href="@{/consultants}">
+                    View all →
+                </a>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table align-middle">
+
+                    <thead>
+
+                    <tr>
+                        <th>Name</th>
+                        <th>Technology</th>
+                        <th>Experience</th>
+                        <th>Status</th>
+                        <th>Joined Date</th>
+                        <th>Profile</th>
+                    </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:if="${#lists.isEmpty(recentConsultants)}">
+
+                        <td colspan="6"
+                            class="empty-message">
+                            No consultants have been added.
+                        </td>
+
+                    </tr>
+
+                    <tr th:each="consultant : ${recentConsultants}">
+
+                        <td>
+
+                            <div class="consultant-name">
+
+                                <span class="avatar"
+                                      th:text="${#strings.substring(
+                                          consultant.name,
+                                          0,
+                                          1
+                                      )}">
+                                    A
+                                </span>
+
+                                <div>
+
+                                    <strong th:text="${consultant.name}">
+                                        Consultant Name
+                                    </strong>
+
+                                    <small th:text="${consultant.email}">
+                                        email@example.com
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                        <td>
+
+                            <span class="technology-badge"
+                                  th:text="${consultant.technology}">
+                                Java
+                            </span>
+
+                        </td>
+
+                        <td>
+
+                            <span th:text="${consultant.experience}">
+                                0
+                            </span>
+
+                            yrs
+
+                        </td>
+
+                        <td>
+
+                            <span class="status-badge"
+                                  th:text="${#strings.replace(
+                                      consultant.status.name(),
+                                      '_',
+                                      ' '
+                                  )}">
+                                ACTIVE
+                            </span>
+
+                        </td>
+
+                        <td th:text="${consultant.joinedDate}">
+                            2026-08-16
+                        </td>
+
+                        <td>
+
+                            <a class="view-button"
+                               th:href="@{/consultants/edit/{id}(
+                                   id=${consultant.id}
+                               )}">
+                                View
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            Consultant Management System
+            <span>© 2026 Roshana Bhandari</span>
+        </footer>
+
+    </main>
+
+</div>
+
+<script th:inline="javascript">
+
+    const activeCount =
+        /*[[${activeConsultants}]]*/ 0;
+
+    const availableCount =
+        /*[[${availableConsultants}]]*/ 0;
+
+    const onProjectCount =
+        /*[[${onProjectConsultants}]]*/ 0;
+
+    const inactiveCount =
+        /*[[${inactiveConsultants}]]*/ 0;
+
+    const statusChartCanvas =
+        document.getElementById('statusChart');
+
+    if (statusChartCanvas) {
+
+        new Chart(statusChartCanvas, {
+            type: 'doughnut',
+
+            data: {
+                labels: [
+                    'Active',
+                    'Available',
+                    'On Project',
+                    'Inactive'
+                ],
+
+                datasets: [{
+                    data: [
+                        activeCount,
+                        availableCount,
+                        onProjectCount,
+                        inactiveCount
+                    ],
+
+                    backgroundColor: [
+                        '#4f6bdc',
+                        '#e3a33c',
+                        '#7046c7',
+                        '#7aa875'
+                    ],
+
+                    borderColor: '#ffffff',
+                    borderWidth: 4
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                },
+
+                cutout: '65%'
+            }
+        });
+    }
+
+    const technologyLabels =
+        /*[[${technologyLabels}]]*/ [];
+
+    const technologyValues =
+        /*[[${technologyValues}]]*/ [];
+
+    const technologyChartCanvas =
+        document.getElementById('technologyChart');
+
+    if (technologyChartCanvas) {
+
+        new Chart(technologyChartCanvas, {
+            type: 'bar',
+
+            data: {
+                labels: technologyLabels,
+
+                datasets: [{
+                    label: 'Consultants',
+                    data: technologyValues,
+                    backgroundColor: '#4f6bdc',
+                    borderColor: '#3f57bd',
+                    borderWidth: 1,
+                    borderRadius: 7
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+
+                        ticks: {
+                            precision: 0,
+                            stepSize: 1
+                        }
+                    },
+
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html>
